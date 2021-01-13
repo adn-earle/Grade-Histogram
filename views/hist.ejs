@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="/styles/hist.css">
+</head>
+
+<body>
+    <h1 id="title">Histogram</h1>
+    <div id="histogram">
+        <ul>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+        </ul>
+    </div>
+    <div id="labels">Grades: </div>
+    <br><br>
+    <div class="slidecontainer">
+        <div>
+        <label for="A+">A+</label>
+        <input id="A+" type="number" min="0" max="10" step="1" class="number">
+        <label for="A">A</label>
+        <input id="A" type="number" min="0" max="0" step="1" class="number">
+        <label for="A-">A-</label>
+        <input id="A-" type="number" min="0" max="0" step="1" class="number">
+        <label for="B+">B+</label>
+        <input id="B+" type="number" min="0" max="0" step="1" class="number">
+        <label for="B">B</label>
+        <input id="B" type="number" min="0" max="0" step="1" class="number">
+        </div>
+        <div>
+        <label for="B-">B-</label>
+        <input id="B-" type="number" min="0" max="0" step="1" class="number">
+        <label for="C+">C+</label>
+        <input id="C+" type="number" min="0" max="0" step="1" class="number">
+        <label for="C">C</label>
+        <input id="C" type="number" min="0" max="0" step="1" class="number">
+        <label for="C-">C-</label>
+        <input id="C-" type="number" min="0" max="0" step="1" class="number">
+        <label for="D">D</label>
+        <input id="D" type="number" min="0" max="0" step="1" class="number">
+        </div>
+        
+    </div>
+    <br><br><br>
+    <form action="/logout" method="post" name="logout">
+        <button type="submit" value="logout">Logout</button>
+    </form>
+    <script>
+        var students;
+        var weights;
+        var counts = {
+            "A+": 0,
+            "A": 0,
+            "A-": 0,
+            "B+": 0,
+            "B": 0,
+            "B-": 0,
+            "C+": 0,
+            "C": 0,
+            "C-": 0,
+            "D": 0,
+            "F": 0
+        };
+        var cutoffs = {
+            "A+": 90,
+            "A": 85,
+            "A-": 80,
+            "B+": 77,
+            "B": 73,
+            "B-": 70,
+            "C+": 67,
+            "C": 63,
+            "C-": 60,
+            "D": 50,
+            "F": 0
+        }
+        $(document).ready(function () {
+            $.ajax({
+                url: '/hist_data',
+                type: 'GET',
+                success: function (response) {
+                    students = response.data;
+                    $.ajax({
+                        url: '/weight_data',
+                        type: 'GET',
+                        success: function (response) {
+                            weights = response.data;
+                            countGrades();
+                            drawHist();
+                            initCutoff();
+                        }
+                    })
+                }
+            });
+
+            function countGrades() {
+                students = JSON.parse(students);
+                weights = JSON.parse(weights);
+                students.forEach((student) => {
+                    var grade = ((Number(student.quiz) * Number(weights.quiz)) +
+                        (Number(student.midterm) * Number(weights.midterm)) +
+                        (Number(student.final) * Number(weights.final))) / 100;
+                    grade = grade.toFixed(2);
+                    student.grade = grade;
+                    for(let i = 0; i < 11; i ++) {
+                        if (Number(grade) >= Object.values(cutoffs)[i]) {
+                            student.letter = Object.keys(cutoffs)[i];
+                            counts[Object.keys(cutoffs)[i]]++;
+                            break;
+                        }
+                    }
+                    console.log(counts);
+                    console.log(student);
+                });
+            }
+
+            function drawHist() {
+                console.log(students);
+                console.log(counts);
+                var container = document.getElementById("histogram");
+                var labels = document.getElementById("labels");
+                var bars = container.getElementsByTagName("li");
+                for(var i = 0; i < bars.length; i++) {
+                    var item = bars.item(i);
+                    var val = Object.values(counts)[i];
+                    item.style.height = (200/(students.length)) * (val) + "px";
+                    item.style.left = (i*50 + 80) + "px";
+                    item.innerHTML = val;
+                    item.style.visibility="visible";
+                    left = (i * 35 + 90) + "px";
+                    labels.innerHTML = labels.innerHTML + "<span style='position:relative;top: 5px;left:" + left +"'>" + Object.keys(counts)[i] + "</span>"
+                }
+            }
+
+            function initCutoff() {
+                $("#A\\+").attr({
+                    "max": 100,
+                    "min": Object.values(cutoffs)[1] + 1,
+                    "value": Object.values(cutoffs)[0],
+                })
+                for(var i = 1; i < 10; i ++) {
+                    var selector = "#" + String(Object.keys(cutoffs)[i]);
+                    selector = selector.replace('+', '\\+');
+                    $(selector).attr({
+                        "max": Object.values(cutoffs)[i-1] - 1,
+                        "min": Object.values(cutoffs)[i+1] + 1,
+                        "value": Object.values(cutoffs)[i]
+                    })
+                    
+                }
+            }
+        });
+
+
+    </script>
+</body>

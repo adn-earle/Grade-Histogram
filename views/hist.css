@@ -1,0 +1,41 @@
+.slidecontainer {
+    width: auto;
+}
+.slidecontainer input {
+    width: auto;
+}
+#title {
+    text-align:center;
+    width: 50%;
+}
+#histogram
+{
+    position: relative;
+    width:660px;
+    height:212px;
+    margin:8px;
+    padding:0;	
+}
+
+#histogram ul
+{
+    position: relative;
+    top:0;
+    left:40px;
+    width:600px;
+    height:200px;
+    border-left:3px solid black;
+    border-bottom:3px solid black;	
+}
+
+#histogram li
+{
+   position:absolute;	
+   list-style:none;
+   background:lightgreen;
+   width:40px;
+   bottom: 0px;
+   text-align:center;
+   border:1px solid black;
+   visibility: hidden;
+}
